@@ -187,7 +187,7 @@ in
             "user_patch"
           ];
           plum_nix = {
-            schema_list = config.plum-nix.schemas;
+            schema_list = map (x: { schema = x; }) config.plum-nix.schemas;
           };
           user_patch = config.plum-nix.patch;
         };
