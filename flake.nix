@@ -20,16 +20,15 @@
     plum.flake = false;
   };
 
-  outputs = inputs:
-    {
-      homeModules.default = import ./src/rime.nix {
-        inherit (inputs)
-          rime-prelude
-          rime-luna-pinyin
-          rime-essay
-          rime-emoji
-          plum
-          ;
-      };
+  outputs = inputs: {
+    homeModules.default = import ./src/rime.nix {
+      inherit (inputs)
+        rime-prelude
+        rime-luna-pinyin
+        rime-essay
+        rime-emoji
+        plum
+        ;
     };
+  };
 }
