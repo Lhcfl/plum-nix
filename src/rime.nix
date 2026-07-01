@@ -99,6 +99,11 @@ let
       builtins.listToAttrs
     ]);
 
+  customize = builtins.mapAttrs (name: value: {
+    name = "${rime-dir}/${name}.custom.yaml";
+    value.source = yaml.generate "${name}.custom.yaml" value;
+  });
+  
 in
 {
   options.plum-nix = {
@@ -159,6 +164,12 @@ in
       description = "Rime 補靪檔，會被寫入到 default.custom.yaml 中";
       default = { };
     };
+
+    customize = lib.mkOption {
+      type = lib.types.attrsOf yaml.type;
+      description = "配置写入 .custom.yaml";
+      default = { };
+    };
   };
 
   config = lib.mkIf config.plum-nix.enable {
@@ -179,7 +190,7 @@ in
 
     home.file = lib.mkMerge [
       (source config-package)
-
+      (customize config.plum-nix.customize)
       {
         "${rime-dir}/default.custom.yaml".source = yaml.generate "default.custom.yaml" {
           patch.__patch = [
