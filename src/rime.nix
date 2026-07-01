@@ -169,12 +169,13 @@ in
       }
     ];
 
-    plum-nix.type = lib.mkDefault (
-      lib.findFirst (x: getConfigInputMethod x != null) null [
-        config
-        osConfig
-      ]
-    );
+    # 不知为何它会引起无限循环
+    # plum-nix.type = lib.mkDefault (
+    #   lib.findFirst (x: getConfigInputMethod x != null) null [
+    #     config
+    #     osConfig
+    #   ]
+    # );
 
     home.file = lib.mkMerge [
       (source config-package)
