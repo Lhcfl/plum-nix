@@ -54,7 +54,7 @@ let
       ''
         mkdir -p package/${name}
         cp -r ${src}/* package/${name}/
-        export sources="$sources ${recipeStr}"
+        export sources="$sources ${name} ${recipeStr}"
       ''
     ) config.plum-nix.recipes
   );
@@ -182,7 +182,7 @@ in
 
       {
         "${rime-dir}/default.custom.yaml".source = yaml.generate "default.custom.yaml" {
-          __patch = [
+          patch = [
             "base_settings"
             "user_patch"
           ];
