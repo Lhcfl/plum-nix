@@ -18,6 +18,9 @@
 
     rime-prelude.url = "github:rime/rime-prelude";
     rime-prelude.flake = false;
+
+    plum.url = "github:rime/plum";
+    plum.flake = false;
   };
 
   outputs =
@@ -36,6 +39,7 @@
               rime-luna-pinyin
               rime-essay
               rime-emoji
+              plum
               ;
           })
         ];

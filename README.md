@@ -36,7 +36,9 @@
             ];
 
             rime-config.enable = true;
+            # Rime 配置文件的存放位置，支持 fcitx5、ibus、fcitx
             rime-config.type = "fcitx5";
+            # 启用的 Rime 输入法方案
             rime-config.schemas = [
               "luna_pinyin"
               "luna_pinyin_simp"

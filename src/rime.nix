@@ -1,16 +1,21 @@
-{ rime-prelude,
+{
+  rime-prelude,
   rime-luna-pinyin,
   rime-essay,
   rime-emoji,
-}: {
+  plum,
+  ...
+}:
+{
   pkgs,
   lib,
   config,
   osConfig,
+  stdenv,
   ...
 }:
 let
-  getConfigInputMethod = lib.attrsets.attrByPath ["i18n" "inputMethod" "type"] null;
+  getConfigInputMethod = lib.attrsets.attrByPath [ "i18n" "inputMethod" "type" ] null;
   get-rime-dir = {
     fcitx5 = ".local/share/fcitx5/rime";
     ibus = ".config/ibus/rime";
@@ -20,14 +25,21 @@ let
   rime-file = file: "${rime-dir}/${file}";
   yaml = pkgs.formats.yaml { };
 
+  filter-rime-file = builtins.filter (
+    file:
+    lib.any (f: f file) [
+      (lib.hasSuffix ".yaml")
+      (lib.hasSuffix ".txt")
+      (file: file == "opencc")
+    ]
+  );
+
   source =
     src:
     (lib.pipe src [
       builtins.readDir
       builtins.attrNames
-      (builtins.filter (
-        name: (lib.hasSuffix ".yaml" name) || (lib.hasSuffix ".txt" name) || name == "opencc"
-      ))
+      filter-rime-file
       (map (name: {
         name = rime-file name;
         value.source = "${src}/${name}";
@@ -50,7 +62,7 @@ let
 in
 {
   options.rime-config = {
-    enable = lib.mkEnableOption "Enable rime configuration"; 
+    enable = lib.mkEnableOption "Enable rime configuration";
 
     sources = lib.mkOption {
       type = lib.types.listOf lib.types.path;
@@ -60,13 +72,20 @@ in
         rime-essay
         rime-emoji
       ];
-      description = "The sources of the rime configuration.";
+      description = "Rime 配置文件的來源目錄列表。";
     };
 
     type = lib.mkOption {
-      type = lib.types.enum [ "fcitx5" "ibus" "fcitx" ];
-      default = lib.findFirst (x : getConfigInputMethod x != null) "fcitx5" [config osConfig];
-      description = "the kind of where to put the rime configuration.";
+      type = lib.types.enum [
+        "fcitx5"
+        "ibus"
+        "fcitx"
+      ];
+      default = lib.findFirst (x: getConfigInputMethod x != null) "fcitx5" [
+        config
+        osConfig
+      ];
+      description = "你是使用的什麼方式啟用 rime 的輸入法框架？";
     };
 
     schemas = lib.mkOption {
@@ -77,13 +96,23 @@ in
         "luna_pinyin_simp"
         "luna_pinyin_tw"
       ];
-      description = "The schemas of the rime configuration.";
+      description = "啟用的 Rime schema 名稱列表，會在 rime 配置目錄下生成對應的 .custom.yaml 文件。";
     };
   };
 
   config = lib.mkIf config.rime-config.enable {
-    home.file = lib.mkMerge ([
-      (patch config.rime-config.schemas)
-    ] ++ (map source config.rime-config.sources));
+    home.file = lib.mkMerge (
+      (map source config.rime-config.sources)
+      ++ [
+        (patch config.rime-config.schemas)
+        {
+          "${rime-dir}/default.custom.yaml".source = yaml.generate "default.custom.yaml" {
+            patch = {
+              "schema_list/=" = map (x: { schema = x; }) config.rime-config.schemas;
+            };
+          };
+        }
+      ]
+    );
   };
 }
