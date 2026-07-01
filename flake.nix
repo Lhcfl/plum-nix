@@ -31,18 +31,14 @@
       ...
     }:
     {
-      homeModules.default = _: {
-        imports = [
-          (import ./src/rime.nix {
-            inherit (inputs)
-              rime-prelude
-              rime-luna-pinyin
-              rime-essay
-              rime-emoji
-              plum
-              ;
-          })
-        ];
+      homeModules.default = import ./src/rime.nix {
+        inherit (inputs)
+          rime-prelude
+          rime-luna-pinyin
+          rime-essay
+          rime-emoji
+          plum
+          ;
       };
 
       homeConfigurations.test = home-manager.lib.homeManagerConfiguration {
