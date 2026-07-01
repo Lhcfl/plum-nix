@@ -36,6 +36,22 @@
         "type": "github"
       }
     },
+    "plum": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778239174,
+        "narHash": "sha256-o16OYMjYrLhoo0H9hw7s/VnXAs+vS0OIY29T1v96WDE=",
+        "owner": "rime",
+        "repo": "plum",
+        "rev": "b1be1969f914cc005add4090631b855db00c2591",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rime",
+        "repo": "plum",
+        "type": "github"
+      }
+    },
     "rime-emoji": {
       "flake": false,
       "locked": {
@@ -104,6 +120,7 @@
       "inputs": {
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
+        "plum": "plum",
         "rime-emoji": "rime-emoji",
         "rime-essay": "rime-essay",
         "rime-luna-pinyin": "rime-luna-pinyin",

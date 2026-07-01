@@ -11,50 +11,87 @@
   lib,
   config,
   osConfig,
-  stdenv,
   ...
 }:
 let
+  yaml = pkgs.formats.yaml { };
+
   getConfigInputMethod = lib.attrsets.attrByPath [ "i18n" "inputMethod" "type" ] null;
+
   get-rime-dir = {
     fcitx5 = ".local/share/fcitx5/rime";
     ibus = ".config/ibus/rime";
     fcitx = ".config/fcitx/rime";
   };
-  rime-dir = get-rime-dir.${config.rime-config.type};
-  rime-file = file: "${rime-dir}/${file}";
-  yaml = pkgs.formats.yaml { };
 
-  filter-rime-file = builtins.filter (
-    file:
-    lib.any (f: f file) [
-      (lib.hasSuffix ".yaml")
-      (lib.hasSuffix ".txt")
-      (file: file == "opencc")
-    ]
+  rime-dir = get-rime-dir.${config.rime-config.type};
+
+  # Convert sources attrset to plum targets and copy entries
+  copySources = lib.concatStringsSep "\n" (
+    lib.lists.imap0 (
+      idx: src:
+      let
+        name = "sources/${toString idx}";
+      in
+      ''
+        mkdir -p package/${name}
+        cp -r ${src}/* package/${name}/
+        export sources="$sources ${name}"
+      ''
+    ) config.rime-config.sources
   );
+
+  copyRecipes = lib.concatStringsSep "\n" (
+    lib.lists.imap0 (
+      idx: { src, recipe }:
+      let
+        name = "recipes/${toString idx}";
+        recipeStr = lib.concatStringsSep " " (map (x: "${name}:${x}") recipe);
+      in
+      ''
+        mkdir -p package/${name}
+        cp -r ${src}/* package/${name}/
+        export sources="$sources ${recipeStr}"
+      ''
+    ) config.rime-config.recipes
+  );
+
+  config-package = pkgs.stdenv.mkDerivation {
+    name = "rime-config-package";
+    src = plum;
+
+    buildPhase = ''
+      runHook preBuild
+      chmod -R u+w .
+      patchShebangs .
+
+      ${copySources}
+      ${copyRecipes}
+
+      export plum_dir=$(pwd)
+      export rime_dir=$out
+      export no_update=1
+
+      mkdir -p $out
+      ./rime-install $sources
+
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+      runHook postInstall
+    '';
+  };
 
   source =
     src:
     (lib.pipe src [
       builtins.readDir
       builtins.attrNames
-      filter-rime-file
       (map (name: {
-        name = rime-file name;
+        name = "${rime-dir}/${name}";
         value.source = "${src}/${name}";
-      }))
-      builtins.listToAttrs
-    ]);
-
-  patch =
-    schema:
-    (lib.pipe schema [
-      (map (schema: {
-        name = rime-file "${schema}.custom.yaml";
-        value.source = yaml.generate "${schema}.custom.yaml" {
-          patch.__include = "emoji_suggestion:/patch";
-        };
       }))
       builtins.listToAttrs
     ]);
@@ -70,9 +107,23 @@ in
         rime-prelude
         rime-luna-pinyin
         rime-essay
-        rime-emoji
       ];
-      description = "Rime 配置文件的來源目錄列表。";
+      description = "Rime 配置源列表。 https://github.com/rime/plum";
+    };
+
+    recipes = lib.mkOption {
+      type = lib.types.listOf (lib.types.submodule {
+        options = {
+          src = lib.mkOption { type = lib.types.path; };
+          recipe = lib.mkOption { type = lib.types.listOf lib.types.str; };
+        };
+      });
+
+      default = [
+        { src = rime-emoji; recipe = map (schema: "customize:schema=${schema}") config.rime-config.schemas; }
+      ];
+
+      description = "Rime 配置 recipe 列表。 https://github.com/rime/home/wiki/Recipes";
     };
 
     type = lib.mkOption {
@@ -96,23 +147,30 @@ in
         "luna_pinyin_simp"
         "luna_pinyin_tw"
       ];
-      description = "啟用的 Rime schema 名稱列表，會在 rime 配置目錄下生成對應的 .custom.yaml 文件。";
+      description = "啟用的 Rime schema 名稱列表";
+    };
+
+    patch = lib.mkOption {
+      type = yaml.type;
+      description = "Rime 補靪檔，會被寫入到 default.custom.yaml 中";
+      default = {};
     };
   };
 
   config = lib.mkIf config.rime-config.enable {
-    home.file = lib.mkMerge (
-      (map source config.rime-config.sources)
-      ++ [
-        (patch config.rime-config.schemas)
-        {
-          "${rime-dir}/default.custom.yaml".source = yaml.generate "default.custom.yaml" {
-            patch = {
-              "schema_list/=" = map (x: { schema = x; }) config.rime-config.schemas;
-            };
-          };
-        }
-      ]
-    );
+    home.file = lib.mkMerge [
+      (source config-package)
+
+      {
+        "${rime-dir}/default.custom.yaml".source = yaml.generate "default.custom.yaml" {
+          __patch = [
+            "base_settings"
+            "user_patch"
+          ];
+          base_settings = { schema_list = config.rime-config.schemas; };
+          user_patch = config.rime-config.patch;
+        };
+      }
+    ];
   };
 }

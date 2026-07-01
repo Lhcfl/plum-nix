@@ -33,7 +33,7 @@
     {
       homeModules.default = _: {
         imports = [
-          (import ./src/rime.nix {
+          (import ./src/rime_v2.nix {
             inherit (inputs)
               rime-prelude
               rime-luna-pinyin
