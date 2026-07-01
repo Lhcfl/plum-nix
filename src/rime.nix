@@ -24,6 +24,8 @@ let
     fcitx = ".config/fcitx/rime";
   };
 
+  availableTypes = lib.attrsets.attrNames get-rime-dir;
+
   rime-dir = get-rime-dir.${config.plum-nix.type};
 
   # Convert sources attrset to plum targets and copy entries
@@ -43,7 +45,8 @@ let
 
   copyRecipes = lib.concatStringsSep "\n" (
     lib.lists.imap0 (
-      idx: { src, recipe }:
+      idx:
+      { src, recipe }:
       let
         name = "recipes/${toString idx}";
         recipeStr = lib.concatStringsSep " " (map (x: "${name}:${x}") recipe);
@@ -112,31 +115,32 @@ in
     };
 
     recipes = lib.mkOption {
-      type = lib.types.listOf (lib.types.submodule {
-        options = {
-          src = lib.mkOption { type = lib.types.path; };
-          recipe = lib.mkOption { type = lib.types.listOf lib.types.str; };
-        };
-      });
+      type = lib.types.listOf (
+        lib.types.submodule {
+          options = {
+            src = lib.mkOption { type = lib.types.path; };
+            recipe = lib.mkOption { type = lib.types.listOf lib.types.str; };
+          };
+        }
+      );
 
-      default = [
-        { src = rime-emoji; recipe = map (schema: "customize:schema=${schema}") config.plum-nix.schemas; }
-      ];
+      defaultText = ''
+        默认启用 rime-emoji 的 recipe，recipe 会根据 config.plum-nix.schemas 生成，内容如下：
+        {
+          src = rime-emoji;
+          recipe = map (schema: "customize:schema=$${schema}") config.plum-nix.schemas;
+        }
+      '';
 
       description = "Rime 配置 recipe 列表。 https://github.com/rime/home/wiki/Recipes";
     };
 
     type = lib.mkOption {
-      type = lib.types.enum [
-        "fcitx5"
-        "ibus"
-        "fcitx"
-      ];
-      default = lib.findFirst (x: getConfigInputMethod x != null) "fcitx5" [
-        config
-        osConfig
-      ];
+      type = lib.types.enum availableTypes;
       description = "你是使用的什麼方式啟用 rime 的輸入法框架？";
+      defaultText = ''
+        config.i18n.inputMethod.type or config.osConfig.i18n.inputMethod.type
+      '';
     };
 
     schemas = lib.mkOption {
@@ -153,11 +157,25 @@ in
     patch = lib.mkOption {
       type = yaml.type;
       description = "Rime 補靪檔，會被寫入到 default.custom.yaml 中";
-      default = {};
+      default = { };
     };
   };
 
   config = lib.mkIf config.plum-nix.enable {
+    plum-nix.recipes = lib.mkDefault [
+      {
+        src = rime-emoji;
+        recipe = map (schema: "customize:schema=${schema}") config.plum-nix.schemas;
+      }
+    ];
+
+    plum-nix.type = lib.mkDefault (
+      lib.findFirst (x: getConfigInputMethod x != null) null [
+        config
+        osConfig
+      ]
+    );
+
     home.file = lib.mkMerge [
       (source config-package)
 
@@ -167,7 +185,9 @@ in
             "base_settings"
             "user_patch"
           ];
-          base_settings = { schema_list = config.plum-nix.schemas; };
+          base_settings = {
+            schema_list = config.plum-nix.schemas;
+          };
           user_patch = config.plum-nix.patch;
         };
       }
