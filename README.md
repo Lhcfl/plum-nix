@@ -60,3 +60,72 @@
 }
 
 ```
+
+## Example
+
+这是我自己的配置文件，供参考
+
+```nix
+_: {
+  plum-nix = {
+    enable = true;
+    type = "fcitx5";
+
+    # 会生成 default.custom.yaml
+    patch = {
+      "switcher/hotkeys" = [ "F4" ]; # 用 F4 切换
+      "menu/page_side" = 9; # 一页写下 9 条
+
+      # 让 key_binder/bindings 变为下面三个的 merge
+      "key_binder/bindings".__patch = [
+        "key_bindings:/move_by_word_with_tab"
+        "key_bindings:/paging_with_brackets"
+        "key_bindings:/numbered_mode_switch"
+      ];
+    };
+
+    # 会生成 symbols.custom.yaml
+    customize.symbols.patch = {
+      "punctuator/half_shape/#/=".commit = "#";
+    };
+  };
+}
+```
+
+生成的 default.custom.yaml 如下：
+
+```yml
+patch:
+  __patch:
+  - plum_nix
+  - user_patch
+plum_nix:
+  schema_list:
+  - schema: luna_pinyin
+  - schema: luna_pinyin_fluency
+  - schema: luna_pinyin_simp
+  - schema: luna_pinyin_tw
+user_patch:
+  key_binder/bindings:
+    __patch:
+    - key_bindings:/move_by_word_with_tab
+    - key_bindings:/paging_with_brackets
+    - key_bindings:/numbered_mode_switch
+  menu/page_side: 9
+  switcher/hotkeys:
+  - F4
+```
+
+生成的 symbols.custom.yaml 如下
+
+```yml
+patch:
+  punctuator/half_shape/#/=:
+    commit: '#'
+```
+
+## Limitations and Todo
+
+- [ ] 识别和合并重复文件
+
+  当前无法合并 .yaml 文件，哪怕 Rime ~~用很逆天的方式~~支持了合并 yaml
