@@ -4,9 +4,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
-    home-manager.url = "github:nix-community/home-manager";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
     rime-luna-pinyin.url = "github:rime/rime-luna-pinyin";
     rime-luna-pinyin.flake = false;
 
@@ -23,13 +20,7 @@
     plum.flake = false;
   };
 
-  outputs =
-    inputs@{
-      self,
-      nixpkgs,
-      home-manager,
-      ...
-    }:
+  outputs = inputs:
     {
       homeModules.default = import ./src/rime.nix {
         inherit (inputs)
@@ -39,21 +30,6 @@
           rime-emoji
           plum
           ;
-      };
-
-      homeConfigurations.test = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs { system = "x86_64-linux"; };
-
-        modules = [
-          self.homeModules.default
-          {
-            home.username = "test";
-            home.homeDirectory = "/tmp/test-home";
-            home.stateVersion = "26.05";
-
-            plum-nix.enable = true;
-          }
-        ];
       };
     };
 }
