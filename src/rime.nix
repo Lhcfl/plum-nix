@@ -182,11 +182,11 @@ in
 
       {
         "${rime-dir}/default.custom.yaml".source = yaml.generate "default.custom.yaml" {
-          patch = [
-            "base_settings"
+          patch.__patch = [
+            "plum_nix"
             "user_patch"
           ];
-          base_settings = {
+          plum_nix = {
             schema_list = config.plum-nix.schemas;
           };
           user_patch = config.plum-nix.patch;
