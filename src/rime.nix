@@ -99,11 +99,13 @@ let
       builtins.listToAttrs
     ]);
 
-  customize = builtins.mapAttrs (name: value: {
-    name = "${rime-dir}/${name}.custom.yaml";
-    value.source = yaml.generate "${name}.custom.yaml" value;
-  });
-  
+  customize = lib.attrsets.mapAttrs' (
+    name: value:
+    lib.nameValuePair "${rime-dir}/${name}.custom.yaml" {
+      source = yaml.generate "${name}.custom.yaml" value;
+    }
+  );
+
 in
 {
   options.plum-nix = {
