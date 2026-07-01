@@ -24,7 +24,7 @@ let
     fcitx = ".config/fcitx/rime";
   };
 
-  rime-dir = get-rime-dir.${config.rime-config.type};
+  rime-dir = get-rime-dir.${config.plum-nix.type};
 
   # Convert sources attrset to plum targets and copy entries
   copySources = lib.concatStringsSep "\n" (
@@ -38,7 +38,7 @@ let
         cp -r ${src}/* package/${name}/
         export sources="$sources ${name}"
       ''
-    ) config.rime-config.sources
+    ) config.plum-nix.sources
   );
 
   copyRecipes = lib.concatStringsSep "\n" (
@@ -53,11 +53,11 @@ let
         cp -r ${src}/* package/${name}/
         export sources="$sources ${recipeStr}"
       ''
-    ) config.rime-config.recipes
+    ) config.plum-nix.recipes
   );
 
   config-package = pkgs.stdenv.mkDerivation {
-    name = "rime-config-package";
+    name = "plum-nix-package";
     src = plum;
 
     buildPhase = ''
@@ -98,7 +98,7 @@ let
 
 in
 {
-  options.rime-config = {
+  options.plum-nix = {
     enable = lib.mkEnableOption "Enable rime configuration";
 
     sources = lib.mkOption {
@@ -120,7 +120,7 @@ in
       });
 
       default = [
-        { src = rime-emoji; recipe = map (schema: "customize:schema=${schema}") config.rime-config.schemas; }
+        { src = rime-emoji; recipe = map (schema: "customize:schema=${schema}") config.plum-nix.schemas; }
       ];
 
       description = "Rime 配置 recipe 列表。 https://github.com/rime/home/wiki/Recipes";
@@ -157,7 +157,7 @@ in
     };
   };
 
-  config = lib.mkIf config.rime-config.enable {
+  config = lib.mkIf config.plum-nix.enable {
     home.file = lib.mkMerge [
       (source config-package)
 
@@ -167,8 +167,8 @@ in
             "base_settings"
             "user_patch"
           ];
-          base_settings = { schema_list = config.rime-config.schemas; };
-          user_patch = config.rime-config.patch;
+          base_settings = { schema_list = config.plum-nix.schemas; };
+          user_patch = config.plum-nix.patch;
         };
       }
     ];

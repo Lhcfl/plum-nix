@@ -33,7 +33,7 @@
     {
       homeModules.default = _: {
         imports = [
-          (import ./src/rime_v2.nix {
+          (import ./src/rime.nix {
             inherit (inputs)
               rime-prelude
               rime-luna-pinyin
@@ -55,7 +55,7 @@
             home.homeDirectory = "/tmp/test-home";
             home.stateVersion = "26.05";
 
-            rime-config.enable = true;
+            plum-nix.enable = true;
           }
         ];
       };
