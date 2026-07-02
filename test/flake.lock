@@ -1,5 +1,41 @@
 {
   "nodes": {
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782964450,
+        "narHash": "sha256-2rwNd77TzZ4sDDvMam0IXFXN5IfC35mifoeKS0uAc/4=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "ebc87daabc8d3f595e9a8b67107eaaa8115ad582",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1782723713,
+        "narHash": "sha256-oPXCU/SSUokcGaJREHibG1CBX3+s/W7orDWQOZDsEeQ=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "b5aa0fbd538984f6e3d201be0005b4463d8b09f8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "plum": {
       "flake": false,
       "locked": {
@@ -14,6 +50,25 @@
         "owner": "rime",
         "repo": "plum",
         "type": "github"
+      }
+    },
+    "plum-nix": {
+      "inputs": {
+        "plum": "plum",
+        "rime-emoji": "rime-emoji",
+        "rime-essay": "rime-essay",
+        "rime-luna-pinyin": "rime-luna-pinyin",
+        "rime-prelude": "rime-prelude"
+      },
+      "locked": {
+        "lastModified": 0,
+        "narHash": "sha256-B4XU6YfDefj9xExWtzltXltJTrFMi1qJPRKxFbbiNfM=",
+        "path": "..",
+        "type": "path"
+      },
+      "original": {
+        "path": "..",
+        "type": "path"
       }
     },
     "rime-emoji": {
@@ -82,11 +137,9 @@
     },
     "root": {
       "inputs": {
-        "plum": "plum",
-        "rime-emoji": "rime-emoji",
-        "rime-essay": "rime-essay",
-        "rime-luna-pinyin": "rime-luna-pinyin",
-        "rime-prelude": "rime-prelude"
+        "home-manager": "home-manager",
+        "nixpkgs": "nixpkgs",
+        "plum-nix": "plum-nix"
       }
     }
   },

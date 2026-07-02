@@ -2,8 +2,6 @@
   description = "Nix rime configuration flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-
     rime-luna-pinyin.url = "github:rime/rime-luna-pinyin";
     rime-luna-pinyin.flake = false;
 
