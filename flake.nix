@@ -45,6 +45,6 @@
         rime-emoji
       ];
 
-      patchUtils = import ./utils.nix;
+      patchUtils = import ./src/utils.nix;
     };
 }
