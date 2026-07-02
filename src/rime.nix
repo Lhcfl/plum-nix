@@ -67,15 +67,16 @@ let
       runHook preBuild
       chmod -R u+w .
       patchShebangs .
+      mkdir -p $out
 
       ${copySources}
       ${copyRecipes}
+      ${copyCustomize}
 
       export plum_dir=$(pwd)
       export rime_dir=$out
       export no_update=1
 
-      mkdir -p $out
       ./rime-install $sources
 
       runHook postBuild
@@ -99,13 +100,18 @@ let
       builtins.listToAttrs
     ]);
 
-  customize = lib.attrsets.mapAttrs' (
-    name: value:
-    lib.nameValuePair "${rime-dir}/${name}.custom.yaml" {
-      source = yaml.generate "${name}.custom.yaml" value;
-    }
-  );
-
+  copyCustomize = lib.pipe config.plum-nix.customize [
+    (lib.attrsets.mapAttrsToList (
+      name: value:
+      let
+        file = yaml.generate "${name}.custom.yaml" { patch = value; };
+      in
+      ''
+        cat ${file} > $out/${name}.custom.yaml
+      ''
+    ))
+    (lib.concatStringsSep "\n")
+  ];
 in
 {
   options.plum-nix = {
@@ -192,7 +198,6 @@ in
 
     home.file = lib.mkMerge [
       (source config-package)
-      (customize config.plum-nix.customize)
       {
         "${rime-dir}/default.custom.yaml".source = yaml.generate "default.custom.yaml" {
           patch.__patch = [

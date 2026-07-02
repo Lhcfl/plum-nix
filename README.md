@@ -85,7 +85,7 @@ _: {
     };
 
     # 会生成 symbols.custom.yaml
-    customize.symbols.patch = {
+    customize.symbols = {
       "punctuator/half_shape/#/=".commit = "#";
     };
   };
@@ -116,7 +116,7 @@ user_patch:
   - F4
 ```
 
-生成的 symbols.custom.yaml 如下
+生成的 symbols.custom.yaml 如下，注意 patch 被自動添加
 
 ```yml
 patch:
@@ -124,8 +124,22 @@ patch:
     commit: '#'
 ```
 
-## Limitations and Todo
+由於使用了 plum 進行 recipes 的合併，可以對會生成的文件進行 customize，類似如下：
 
-- [ ] 识别和合并重复文件
+```nix
+plum-nix.customize.luna_pinyin = {
+  "test" = 1;
+};
+```
 
-  当前无法合并 .yaml 文件，哪怕 Rime ~~用很逆天的方式~~支持了合并 yaml
+此時，plum 會將其 patch 變爲：
+
+```nix
+patch:
+  test: 1
+__patch:
+# Rx: recipes/0:customize:schema=luna_pinyin {
+  - patch/+:
+      __include: emoji_suggestion:/patch
+# }
+```

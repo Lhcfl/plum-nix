@@ -7,4 +7,7 @@
 
   plum-nix.enable = true;
   plum-nix.type = "fcitx5";
+  plum-nix.customize.luna_pinyin = {
+    "test" = 1;
+  };
 }
