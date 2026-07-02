@@ -44,5 +44,7 @@
         rime-essay
         rime-emoji
       ];
+
+      patchUtils = import ./utils.nix;
     };
 }

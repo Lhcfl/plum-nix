@@ -74,7 +74,7 @@ _: {
     # 会生成 default.custom.yaml
     patch = {
       "switcher/hotkeys" = [ "F4" ]; # 用 F4 切换
-      "menu/page_side" = 9; # 一页写下 9 条
+      "menu/page_size" = 9; # 一页写下 9 条
 
       # 让 key_binder/bindings 变为下面三个的 merge
       "key_binder/bindings".__patch = [
@@ -111,7 +111,7 @@ user_patch:
     - key_bindings:/move_by_word_with_tab
     - key_bindings:/paging_with_brackets
     - key_bindings:/numbered_mode_switch
-  menu/page_side: 9
+  menu/page_size: 9
   switcher/hotkeys:
   - F4
 ```
@@ -143,3 +143,44 @@ __patch:
       __include: emoji_suggestion:/patch
 # }
 ```
+
+## Useful utils
+
+根据 [RIME wiki](https://github.com/rime/home/wiki/Configuration) 所说：
+
+> 可在節點路徑末尾添加 /+ 操作符，表示合併 list 或 map 節點；或者（可選地）添加 /= 表示用指定的值替換目標節點原有的值。若未指定操作符，__patch: 指令的默認操作爲替換。
+
+导出了一个有用的小工具简化配置。使用 `patchUtils` 来帮助编写 patch。上面的配置可以简写成：
+
+```nix
+{ input, lib, ... }: 
+let 
+  inherit (input.plum-nix.patchUtils lib) replace append mkPatch;
+in
+{
+  plum-nix = {
+    enable = true;
+    type = "fcitx5";
+
+    patch = mkPatch {
+      switcher.hotkeys = replace [ "F4" ];
+      menu.page_size = replace 9;
+      key_binder.bindings = replace {
+        __patch = [
+          "key_bindings:/move_by_word_with_tab"
+          "key_bindings:/paging_with_brackets"
+          "key_bindings:/numbered_mode_switch"
+        ];
+      };
+    };
+
+    customize.symbols = mkPatch {
+      punctuator.half_shape."#" = replace { commit = "#"; };
+    };
+  };
+}
+```
+
+具体而言，`mkPatch { a.b.c.d = replace e; }` 会被转化成 { "a/b/c/d/=" = e; }
+
+而 `mkPatch { a.b.c.d = append e; }` 会被转化成 { "a/b/c/d/+" = e; }
