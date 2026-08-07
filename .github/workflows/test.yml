@@ -32,42 +32,5 @@ jobs:
 
       - name: Build home-manager module test
         run: |
-          mkdir -p /tmp/test
-          cat > /tmp/test/flake.nix << 'EOF'
-          {
-            inputs = {
-              nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-              home-manager.url = "github:nix-community/home-manager";
-              home-manager.inputs.nixpkgs.follows = "nixpkgs";
-              plum-nix.url = "github:NixOS/nixpkgs/nixos-unstable";
-            };
-
-            outputs = { nixpkgs, home-manager, plum-nix, ... }:
-            let
-              system = "x86_64-linux";
-              pkgs = nixpkgs.legacyPackages.${system};
-              conf = home-manager.lib.homeManagerConfiguration {
-                inherit pkgs;
-                modules = [
-                  plum-nix.homeModules.default
-                  {
-                    plum-nix = {
-                      enable = true;
-                      type = "fcitx5";
-                      schemas = [ "luna_pinyin" ];
-                    };
-                    home.username = "test";
-                    home.homeDirectory = "/home/test";
-                    home.stateVersion = "24.05";
-                  }
-                ];
-              };
-            in {
-              packages.${system}.default = conf.activationPackage;
-            };
-          }
-          EOF
-          nix build ".#packages.x86_64-linux.default" \
-            --override-input plum-nix "path:${GITHUB_WORKSPACE}" \
-            --print-build-logs --no-link
-        working-directory: /tmp/test
+          cd test
+          nix flake check
