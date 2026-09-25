@@ -110,6 +110,13 @@ in
         rime-luna-pinyin
         rime-essay
       ];
+      defaultText = lib.literalExpression ''
+        [
+          rime-prelude
+          rime-luna-pinyins
+          rime-essay
+        ]
+      '';
       description = "Rime 配置源列表。 https://github.com/rime/plum";
     };
 
@@ -123,12 +130,22 @@ in
         }
       );
 
-      defaultText = ''
+      default = [
+        {
+          src = rime-emoji;
+          recipe = map (schema: "customize:schema=${schema}") config.plum-nix.schemas;
+        }
+      ];
+
+      defaultText = lib.literalMD ''
         默认启用 rime-emoji 的 recipe，recipe 会根据 config.plum-nix.schemas 生成，内容如下：
+
+        ```nix
         {
           src = rime-emoji;
           recipe = map (schema: "customize:schema=$${schema}") config.plum-nix.schemas;
         }
+        ```
       '';
 
       description = "Rime 配置 recipe 列表。 https://github.com/rime/home/wiki/Recipes";
@@ -136,10 +153,26 @@ in
 
     type = lib.mkOption {
       type = lib.types.enum availableTypes;
+
       description = "你是使用的什麼方式啟用 rime 的輸入法框架？";
-      defaultText = ''
-        config.i18n.inputMethod.type or config.osConfig.i18n.inputMethod.type
+
+      defaultText = lib.literalMD ''
+        依次以下列顺序 fallback:
+        - `config.i18n.inputMethod.type`
+        - `osConfig.i18n.inputMethod.type`
       '';
+
+      default =
+        let
+          osType = osConfig.i18n.inputMethod.type or null;
+          homeType = config.i18n.inputMethod.type or null;
+        in
+        if homeType != null then
+          homeType
+        else if osType != null then
+          osType
+        else
+          "please specify `plum-nix.type`";
     };
 
     schemas = lib.mkOption {
@@ -167,18 +200,6 @@ in
   };
 
   config = lib.mkIf config.plum-nix.enable {
-    plum-nix.recipes = lib.mkDefault [
-      {
-        src = rime-emoji;
-        recipe = map (schema: "customize:schema=${schema}") config.plum-nix.schemas;
-      }
-    ];
-
-    # 不知为何它会引起无限循环
-    # plum-nix.type = lib.mkDefault (
-    #   config.i18n.inputMethod.type or (lib.mkIf (osConfig == null) osConfig.i18n.inputMethod.type)
-    # );
-
     home.file = {
       "${rime-dir}" = {
         source = config-package;
