@@ -2,6 +2,8 @@
 
 基于 [plum](https://github.com/rime/plum) 提供 Rime 输入法配置。
 
+📖 [文档网站](https://lhcfl.github.io/plum-nix/)
+
 ## Features
 
 这是一个 plum 的 wrapper，允许通过 nix 风格的声明式配置 Rime 输入法。

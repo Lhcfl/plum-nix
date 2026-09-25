@@ -3,7 +3,9 @@
     "allow": [
       "Shell(gh:*)",
       "Shell(grep:*)",
-      "Shell(git:*)"
+      "Shell(git:*)",
+      "Shell(nix:*)",
+      "Shell(sleep:*)"
     ],
     "deny": [],
     "defaultMode": "default"
