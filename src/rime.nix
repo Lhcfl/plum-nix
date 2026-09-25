@@ -10,13 +10,11 @@
   pkgs,
   lib,
   config,
-  osConfig,
+  osConfig ? null,
   ...
 }:
 let
   yaml = pkgs.formats.yaml { };
-
-  getConfigInputMethod = lib.attrsets.attrByPath [ "i18n" "inputMethod" "type" ] null;
 
   get-rime-dir = {
     fcitx5 = ".local/share/fcitx5/rime";
@@ -87,18 +85,6 @@ let
       runHook postInstall
     '';
   };
-
-  source =
-    src:
-    (lib.pipe src [
-      builtins.readDir
-      builtins.attrNames
-      (map (name: {
-        name = "${rime-dir}/${name}";
-        value.source = "${src}/${name}";
-      }))
-      builtins.listToAttrs
-    ]);
 
   copyCustomize = lib.pipe config.plum-nix.customize [
     (lib.attrsets.mapAttrsToList (
@@ -190,26 +176,24 @@ in
 
     # 不知为何它会引起无限循环
     # plum-nix.type = lib.mkDefault (
-    #   lib.findFirst (x: getConfigInputMethod x != null) null [
-    #     config
-    #     osConfig
-    #   ]
+    #   config.i18n.inputMethod.type or (lib.mkIf (osConfig == null) osConfig.i18n.inputMethod.type)
     # );
 
-    home.file = lib.mkMerge [
-      (source config-package)
-      {
-        "${rime-dir}/default.custom.yaml".source = yaml.generate "default.custom.yaml" {
-          patch.__patch = [
-            "plum_nix"
-            "user_patch"
-          ];
-          plum_nix = {
-            schema_list = map (x: { schema = x; }) config.plum-nix.schemas;
-          };
-          user_patch = config.plum-nix.patch;
+    home.file = {
+      "${rime-dir}" = {
+        source = config-package;
+        recursive = true;
+      };
+      "${rime-dir}/default.custom.yaml".source = yaml.generate "default.custom.yaml" {
+        patch.__patch = [
+          "plum_nix"
+          "user_patch"
+        ];
+        plum_nix = {
+          schema_list = map (x: { schema = x; }) config.plum-nix.schemas;
         };
-      }
-    ];
+        user_patch = config.plum-nix.patch;
+      };
+    };
   };
 }
