@@ -19,11 +19,11 @@
     "rime-emoji": {
       "flake": false,
       "locked": {
-        "lastModified": 1774397784,
-        "narHash": "sha256-QqHauKSfyi+heseUTQ+gztjkdoSGGfw/jRorFxSiXOo=",
+        "lastModified": 1791395966,
+        "narHash": "sha256-fS9Or4/I8c0N7GFM5JH7p/ficU8+XXUIGnu3d5i9vAI=",
         "owner": "rime",
         "repo": "rime-emoji",
-        "rev": "d1dbb424124fc50452a179300c7f287dbcc0db64",
+        "rev": "39d232996de79a95d7bf4b5e8533feed5326b075",
         "type": "github"
       },
       "original": {
